@@ -1,8 +1,7 @@
----
+﻿---
 title: Customer Support Triage
-emoji: ??
 colorFrom: purple
-colorTo: teal
+colorTo: blue
 sdk: docker
 app_port: 7860
 tags:
@@ -10,7 +9,7 @@ tags:
 license: mit
 ---
 
-# 🎫 Customer Support Triage — OpenEnv Environment
+# ðŸŽ« Customer Support Triage â€” OpenEnv Environment
 
 [![OpenEnv](https://img.shields.io/badge/OpenEnv-compliant-blue)](https://github.com/openenv)
 [![HF Spaces](https://img.shields.io/badge/HuggingFace-Spaces-yellow)](https://huggingface.co/spaces)
@@ -76,7 +75,7 @@ All actions target a specific ticket and are typed via Pydantic:
 
 ## Tasks
 
-### 🟢 Easy — Ticket Classification (`ticket_classification`)
+### ðŸŸ¢ Easy â€” Ticket Classification (`ticket_classification`)
 
 **Objective:** Classify 5 customer support tickets by department and urgency.  
 **Max steps:** 10  
@@ -84,29 +83,29 @@ All actions target a specific ticket and are typed via Pydantic:
 **Expected score for a capable agent:** ~0.90+
 
 Tickets cover a double billing charge, a password reset, a defective product return,  
-an app crash, and an office hours inquiry — clear-cut cases designed to test  
+an app crash, and an office hours inquiry â€” clear-cut cases designed to test  
 basic domain understanding.
 
 ---
 
-### 🟡 Medium — Ticket Response (`ticket_response`)
+### ðŸŸ¡ Medium â€” Ticket Response (`ticket_response`)
 
 **Objective:** Draft professional, empathetic responses to 3 tickets.  
 **Max steps:** 9  
 **Scoring per ticket (averaged over 3):**
-- Keyword coverage (40%) — domain-specific terms present
-- Response length ≥ 80 words (20%)
+- Keyword coverage (40%) â€” domain-specific terms present
+- Response length â‰¥ 80 words (20%)
 - Acknowledgment phrases present (20%)
 - Next-steps / action language present (20%)
 
 Tickets cover a billing dispute after cancellation, a technical error before a deadline,  
-and a damaged delivery — each requiring empathy + concrete resolution path.
+and a damaged delivery â€” each requiring empathy + concrete resolution path.
 
 **Expected score:** ~0.65 (frontier models), ~0.45 (smaller models)
 
 ---
 
-### 🔴 Hard — Full Inbox Triage (`inbox_triage`)
+### ðŸ”´ Hard â€” Full Inbox Triage (`inbox_triage`)
 
 **Objective:** Manage 8 mixed tickets across all action types.  
 **Max steps:** 24  
@@ -130,14 +129,14 @@ Rewards are issued **at every step**, not just at episode end:
 
 | Scenario | Reward |
 |---|---|
-| Correct classify (dept + urgency) | `+0.40 × accuracy × 1/N_tickets` per step |
-| Correct routing action | `+0.40 × 1/N_tickets` per step |
-| Good response (respond action) | `+0.20 × quality × 1/N_tickets` bonus |
+| Correct classify (dept + urgency) | `+0.40 Ã— accuracy Ã— 1/N_tickets` per step |
+| Correct routing action | `+0.40 Ã— 1/N_tickets` per step |
+| Good response (respond action) | `+0.20 Ã— quality Ã— 1/N_tickets` bonus |
 | Skip action | `-0.01` (small penalty) |
 | Re-actioning a completed ticket | `0.0` (no reward) |
 | Exceeding max_steps | Final score multiplied by `0.90` |
 
-Episode score (0.0–1.0) is reported in `info["episode_score"]` when `done=True`.
+Episode score (0.0â€“1.0) is reported in `info["episode_score"]` when `done=True`.
 
 ---
 
@@ -150,7 +149,7 @@ Scores produced by running `inference.py` with `Qwen/Qwen2.5-72B-Instruct`:
 | `ticket_classification` | Easy | **0.72** |
 | `ticket_response` | Medium | **0.61** |
 | `inbox_triage` | Hard | **0.54** |
-| **Average** | — | **0.62** |
+| **Average** | â€” | **0.62** |
 
 ---
 
@@ -165,7 +164,7 @@ pip install -r requirements.txt
 
 # Run the HTTP server
 python server.py
-# → Listening on http://localhost:7860
+# â†’ Listening on http://localhost:7860
 
 # Run baseline inference (set your key first)
 export HF_TOKEN=hf_your_token_here
@@ -200,7 +199,7 @@ action = Action(
     )
 )
 result = env.step(action)
-print(result.reward)   # Reward(value=1.0, reason="department='billing' ✓ | urgency='high' ✓", ...)
+print(result.reward)   # Reward(value=1.0, reason="department='billing' âœ“ | urgency='high' âœ“", ...)
 ```
 
 ### HTTP API
@@ -232,7 +231,7 @@ curl http://localhost:7860/state
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `HF_TOKEN` | Yes (inference) | — | Hugging Face / API key |
+| `HF_TOKEN` | Yes (inference) | â€” | Hugging Face / API key |
 | `API_BASE_URL` | No | `https://router.huggingface.co/v1` | LLM API endpoint |
 | `MODEL_NAME` | No | `Qwen/Qwen2.5-72B-Instruct` | Model identifier |
 | `TASK_NAME` | No | *(all tasks)* | Run a single task |
@@ -244,22 +243,22 @@ curl http://localhost:7860/state
 
 ```
 customer-support-env/
-├── customer_support_env/
-│   ├── __init__.py          # Package exports
-│   ├── env.py               # CustomerSupportEnv — OpenEnv interface
-│   ├── models.py            # Pydantic models (Observation, Action, Reward, ...)
-│   ├── data.py              # Task data + ground truth
-│   └── tasks/
-│       ├── __init__.py      # Task registry
-│       ├── easy.py          # Ticket classification grader
-│       ├── medium.py        # Response quality grader
-│       └── hard.py          # Full inbox triage grader
-├── server.py                # FastAPI HTTP server (HF Spaces)
-├── inference.py             # Baseline inference script
-├── openenv.yaml             # OpenEnv metadata
-├── Dockerfile               # Container definition
-├── requirements.txt         # Python dependencies
-└── README.md                # This file
+â”œâ”€â”€ customer_support_env/
+â”‚   â”œâ”€â”€ __init__.py          # Package exports
+â”‚   â”œâ”€â”€ env.py               # CustomerSupportEnv â€” OpenEnv interface
+â”‚   â”œâ”€â”€ models.py            # Pydantic models (Observation, Action, Reward, ...)
+â”‚   â”œâ”€â”€ data.py              # Task data + ground truth
+â”‚   â””â”€â”€ tasks/
+â”‚       â”œâ”€â”€ __init__.py      # Task registry
+â”‚       â”œâ”€â”€ easy.py          # Ticket classification grader
+â”‚       â”œâ”€â”€ medium.py        # Response quality grader
+â”‚       â””â”€â”€ hard.py          # Full inbox triage grader
+â”œâ”€â”€ server.py                # FastAPI HTTP server (HF Spaces)
+â”œâ”€â”€ inference.py             # Baseline inference script
+â”œâ”€â”€ openenv.yaml             # OpenEnv metadata
+â”œâ”€â”€ Dockerfile               # Container definition
+â”œâ”€â”€ requirements.txt         # Python dependencies
+â””â”€â”€ README.md                # This file
 ```
 
 ---
@@ -268,17 +267,18 @@ customer-support-env/
 
 | Requirement | Status |
 |---|---|
-| Typed `Observation`, `Action`, `Reward` Pydantic models | ✅ |
-| `reset()` → initial `Observation` | ✅ |
-| `step(action)` → `(observation, reward, done, info)` | ✅ |
-| `state()` → full state snapshot | ✅ |
-| `openenv.yaml` metadata | ✅ |
-| ≥ 3 tasks with programmatic graders | ✅ (3 tasks) |
-| Reward in [0.0, 1.0] range | ✅ |
-| Incremental reward signal (not just terminal) | ✅ |
-| Penalty for undesirable behaviour (skip/overtime) | ✅ |
-| Baseline `inference.py` using OpenAI client | ✅ |
-| Reads credentials from `HF_TOKEN` env variable | ✅ |
-| Dockerfile + `docker build/run` | ✅ |
-| HF Spaces deployable (port 7860) | ✅ |
+| Typed `Observation`, `Action`, `Reward` Pydantic models | âœ… |
+| `reset()` â†’ initial `Observation` | âœ… |
+| `step(action)` â†’ `(observation, reward, done, info)` | âœ… |
+| `state()` â†’ full state snapshot | âœ… |
+| `openenv.yaml` metadata | âœ… |
+| â‰¥ 3 tasks with programmatic graders | âœ… (3 tasks) |
+| Reward in [0.0, 1.0] range | âœ… |
+| Incremental reward signal (not just terminal) | âœ… |
+| Penalty for undesirable behaviour (skip/overtime) | âœ… |
+| Baseline `inference.py` using OpenAI client | âœ… |
+| Reads credentials from `HF_TOKEN` env variable | âœ… |
+| Dockerfile + `docker build/run` | âœ… |
+| HF Spaces deployable (port 7860) | âœ… |
+
 
