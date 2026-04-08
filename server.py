@@ -91,8 +91,13 @@ def list_tasks():
 
 
 @app.post("/reset", response_model=Observation)
-def reset(request: ResetRequest):
-    """Reset the environment for the given task. Returns initial observation."""
+def reset(request: Optional[ResetRequest] = None):
+    """Reset the environment for the given task. Returns initial observation.
+
+    Body is optional — calling POST /reset with no body starts the default task.
+    """
+    if request is None:
+        request = ResetRequest()
     if request.task_name not in TASKS:
         raise HTTPException(
             status_code=400,
