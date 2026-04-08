@@ -1,4 +1,4 @@
-[build-system]
+﻿[build-system]
 requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.backends.legacy:build"
 
@@ -14,8 +14,12 @@ dependencies = [
     "openai>=1.25.0",
     "pyyaml>=6.0.1",
     "httpx>=0.27.0",
+    "openenv-core>=0.2.0",
 ]
+
+[project.scripts]
+serve = "server.app:app"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["customer_support_env*"]
+include = ["customer_support_env*", "server*"]
