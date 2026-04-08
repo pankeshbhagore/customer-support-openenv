@@ -1,0 +1,94 @@
+name: customer-support-triage
+version: "1.0.0"
+description: >
+  An OpenEnv-compliant environment for training and evaluating AI agents
+  on real-world customer support triage tasks. Agents classify tickets by
+  department and urgency, draft professional responses, escalate critical
+  issues, and manage a full support inbox — mirroring tasks performed daily
+  by human support teams.
+
+author: "OpenEnv Hackathon Submission"
+tags:
+  - openenv
+  - customer-support
+  - nlp
+  - real-world
+  - triage
+  - classification
+  - response-generation
+
+tasks:
+  - name: ticket_classification
+    difficulty: easy
+    max_steps: 10
+    description: >
+      Classify 5 customer support tickets by department (billing, technical,
+      general, returns) and urgency (low, medium, high). Graded on accuracy.
+
+  - name: ticket_response
+    difficulty: medium
+    max_steps: 9
+    description: >
+      Draft professional, empathetic responses to 3 tickets covering billing
+      disputes, technical issues, and damaged products. Graded on keyword
+      coverage, acknowledgment, next-steps, and minimum response length.
+
+  - name: inbox_triage
+    difficulty: hard
+    max_steps: 24
+    description: >
+      Manage a full 8-ticket inbox. Classify each ticket, then apply the
+      correct routing action (escalate P0 outages and legal/GDPR requests,
+      archive spam, respond to solvable issues, close positive feedback).
+      Graded on classification accuracy (40%), routing correctness (40%),
+      and response quality (20%).
+
+observation_space:
+  type: object
+  description: >
+    Structured observation containing the current list of tickets, pending
+    and completed ticket IDs, action history, step count, and running score.
+  fields:
+    - task_name: string
+    - task_description: string
+    - step_count: integer
+    - max_steps: integer
+    - tickets: list of Ticket objects
+    - pending_ticket_ids: list of strings
+    - completed_ticket_ids: list of strings
+    - actions_history: list of action dicts (last 10)
+    - score_so_far: float [0.0, 1.0]
+    - done: boolean
+
+action_space:
+  type: object
+  description: >
+    Structured action targeting a specific ticket. Action type determines
+    which payload fields are required.
+  fields:
+    - action_type: enum [classify, respond, escalate, archive, close, skip]
+    - ticket_id: string
+    - classification: optional object {department, urgency}
+    - response: optional object {response_text}
+    - escalation: optional object {reason}
+
+reward:
+  type: float
+  range: [-1.0, 1.0]
+  description: >
+    Per-step reward signal reflecting incremental progress. Positive rewards
+    for correct classifications, good responses, and accurate routing.
+    Small negative reward for skip actions. Episode score (0.0–1.0) reported
+    at done=true in info.episode_score.
+
+baseline_scores:
+  # Qwen/Qwen2.5-72B-Instruct via HF Inference Router
+  ticket_classification: 0.72   # easy — most LLMs classify well
+  ticket_response: 0.61         # medium — keyword + length requirements challenge smaller models
+  inbox_triage: 0.54            # hard — spam/GDPR routing is the main failure point
+  oracle_upper_bound: 0.94      # rule-based perfect-knowledge agent
+
+runtime:
+  python: ">=3.10"
+  framework: fastapi
+  port: 7860
