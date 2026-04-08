@@ -1,3 +1,15 @@
+---
+title: Customer Support Triage
+emoji: ??
+colorFrom: purple
+colorTo: teal
+sdk: docker
+app_port: 7860
+tags:
+  - openenv
+license: mit
+---
+
 # 🎫 Customer Support Triage — OpenEnv Environment
 
 [![OpenEnv](https://img.shields.io/badge/OpenEnv-compliant-blue)](https://github.com/openenv)
@@ -269,3 +281,4 @@ customer-support-env/
 | Reads credentials from `HF_TOKEN` env variable | ✅ |
 | Dockerfile + `docker build/run` | ✅ |
 | HF Spaces deployable (port 7860) | ✅ |
+
