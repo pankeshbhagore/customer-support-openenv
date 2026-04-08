@@ -105,7 +105,8 @@ def grade_action(
         urg_score = 0.5 if urg_ok else 0.0
         # Classify contributes 40% of this ticket's share; per-ticket: 1/8
         # Return classification sub-score (0-1); weighting done at episode level
-        sub_score = dept_score + urg_score  # 0.0–1.0
+        sub_score = dept_score + urg_score
+        sub_score = max(0.01, min(0.99, sub_score))
         breakdown["department"] = dept_score
         breakdown["urgency"] = urg_score
         reason = (
@@ -125,7 +126,7 @@ def grade_action(
         atype_str = atype.value if hasattr(atype, "value") else str(atype)
         action_correct = (atype_str == correct_action)
 
-        route_score = 1.0 if action_correct else 0.0
+        route_score = 0.9 if action_correct else 0.1
         breakdown["routing"] = route_score
 
         reason_parts = [f"route={'✓' if action_correct else '✗'}(expected={correct_action})"]
@@ -197,4 +198,9 @@ def compute_episode_score(agent_actions: List[Dict[str, Any]]) -> float:
     route_avg = sum(route_scores.get(tid, 0.0) for tid in ticket_ids) / n
     resp_avg = sum(resp_scores.get(tid, 0.0) for tid in ticket_ids) / n
 
-    return round(0.40 * cls_avg + 0.40 * route_avg + 0.20 * resp_avg, 4)
+    return round(
+    max(0.01, min(0.99,
+        0.40 * cls_avg + 0.40 * route_avg + 0.20 * resp_avg
+    )),
+    4
+)

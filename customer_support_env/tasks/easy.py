@@ -77,6 +77,7 @@ def grade_action(
     else:
         reason_parts.append(f"urgency: got '{cls.urgency}', expected '{gt['urgency']}' ✗")
 
+    total = max(0.01, min(0.99, total))
     return total, " | ".join(reason_parts), {"department": dept_score, "urgency": urg_score}
 
 

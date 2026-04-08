@@ -69,7 +69,7 @@ def _score_response(ticket_id: str, response_text: str) -> Tuple[float, str, Dic
     breakdown["next_steps"] = round(0.20 if action_hit else 0.0, 4)
 
     total = sum(breakdown.values())
-    total = max(0.0, min(1.0, total))
+    total = max(0.01, min(0.99, total))
 
     hits_str = f"{hits}/{len(keywords)} keywords matched"
     reason = (
