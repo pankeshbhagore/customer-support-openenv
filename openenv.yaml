@@ -1,94 +1,132 @@
 name: customer-support-triage
-version: "1.0.0"
-description: >
-  An OpenEnv-compliant environment for training and evaluating AI agents
-  on real-world customer support triage tasks. Agents classify tickets by
-  department and urgency, draft professional responses, escalate critical
-  issues, and manage a full support inbox — mirroring tasks performed daily
-  by human support teams.
+version: "2.0.0"
+spec_version: 1
+type: http
 
-author: "OpenEnv Hackathon Submission"
+description: >
+  Real-world customer support triage environment for RL and LLM agent evaluation.
+  Four tasks of increasing difficulty: ticket classification (easy), response
+  drafting (medium), full inbox triage (hard), and expert-level churn prevention
+  requiring business reasoning and personalised retention strategies.
+  Properly extends openenv-core Environment base class with typed Pydantic models.
+
+author: "Pankesh Bhagore — Meta PyTorch OpenEnv Hackathon 2026"
 tags:
   - openenv
   - customer-support
   - nlp
   - real-world
   - triage
+  - churn-prevention
   - classification
   - response-generation
+  - retention
+
+runtime:
+  python: ">=3.11"
+  framework: fastapi
+  port: 7860
+
+app:
+  port: 7860
+  health_endpoint: /health
+  reset_endpoint: /reset
+  step_endpoint: /step
+  state_endpoint: /state
 
 tasks:
   - name: ticket_classification
     difficulty: easy
     max_steps: 10
+    num_tickets: 5
+    score_range: "(0.01, 0.99)"
     description: >
       Classify 5 customer support tickets by department (billing, technical,
-      general, returns) and urgency (low, medium, high). Graded on accuracy.
+      general, returns) and urgency (low, medium, high).
 
   - name: ticket_response
     difficulty: medium
     max_steps: 9
+    num_tickets: 3
+    score_range: "(0.01, 0.99)"
     description: >
-      Draft professional, empathetic responses to 3 tickets covering billing
-      disputes, technical issues, and damaged products. Graded on keyword
-      coverage, acknowledgment, next-steps, and minimum response length.
+      Draft professional empathetic responses to 3 tickets: billing dispute,
+      technical error with deadline, damaged delivery. Graded on keyword
+      coverage, acknowledgment, next-steps, and minimum length.
 
   - name: inbox_triage
     difficulty: hard
     max_steps: 24
+    num_tickets: 8
+    score_range: "(0.01, 0.99)"
     description: >
-      Manage a full 8-ticket inbox. Classify each ticket, then apply the
-      correct routing action (escalate P0 outages and legal/GDPR requests,
-      archive spam, respond to solvable issues, close positive feedback).
-      Graded on classification accuracy (40%), routing correctness (40%),
-      and response quality (20%).
+      Manage a full 8-ticket inbox. Classify then route correctly:
+      escalate P0 outages and GDPR requests, archive spam, respond to
+      solvable issues, close positive feedback.
+
+  - name: churn_prevention
+    difficulty: expert
+    max_steps: 30
+    num_tickets: 10
+    score_range: "(0.01, 0.99)"
+    description: >
+      10 high-value customers showing churn signals — some explicit (competitor
+      pricing), some hidden (data export request = hidden churn). Detect risk
+      level, personalise retention offers, escalate critical accounts.
 
 observation_space:
-  type: object
-  description: >
-    Structured observation containing the current list of tickets, pending
-    and completed ticket IDs, action history, step count, and running score.
+  type: TriageObservation
+  extends: openenv.core.env_server.Observation
   fields:
-    - task_name: string
-    - task_description: string
-    - step_count: integer
-    - max_steps: integer
-    - tickets: list of Ticket objects
-    - pending_ticket_ids: list of strings
-    - completed_ticket_ids: list of strings
-    - actions_history: list of action dicts (last 10)
-    - score_so_far: float [0.0, 1.0]
-    - done: boolean
+    done: bool
+    reward: "float | None"
+    metadata: dict
+    task_name: str
+    task_description: str
+    step_count: int
+    max_steps: int
+    tickets: "list[Ticket]"
+    pending_ticket_ids: "list[str]"
+    completed_ticket_ids: "list[str]"
+    actions_history: "list[dict]"
+    score_so_far: float
 
 action_space:
-  type: object
-  description: >
-    Structured action targeting a specific ticket. Action type determines
-    which payload fields are required.
+  type: TriageAction
+  extends: openenv.core.env_server.Action
   fields:
-    - action_type: enum [classify, respond, escalate, archive, close, skip]
-    - ticket_id: string
-    - classification: optional object {department, urgency}
-    - response: optional object {response_text}
-    - escalation: optional object {reason}
+    action_type: "enum: classify|respond|escalate|archive|close|skip"
+    ticket_id: str
+    classification: "optional ClassificationPayload"
+    response: "optional ResponsePayload"
+    escalation: "optional EscalationPayload"
+
+state_space:
+  type: TriageState
+  extends: openenv.core.env_server.State
+  fields:
+    episode_id: str
+    step_count: int
+    task_name: str
+    max_steps: int
+    tickets: "list[Ticket]"
+    ground_truth: dict
+    agent_actions: "list[dict]"
+    cumulative_reward: float
+    episode_score: float
 
 reward:
   type: float
-  range: [-1.0, 1.0]
+  range: "(0.01, 0.99) strict — never 0.0 or 1.0"
+  signal: incremental
   description: >
-    Per-step reward signal reflecting incremental progress. Positive rewards
-    for correct classifications, good responses, and accurate routing.
-    Small negative reward for skip actions. Episode score (0.0–1.0) reported
-    at done=true in info.episode_score.
+    Per-step reward embedded in Observation.reward (openenv-core convention).
+    Positive for correct actions, -0.01 for skip, 0.02 for errors.
+    Episode score in obs.metadata.episode_score when done=true.
 
 baseline_scores:
-  # Qwen/Qwen2.5-72B-Instruct via HF Inference Router
-  ticket_classification: 0.72   # easy — most LLMs classify well
-  ticket_response: 0.61         # medium — keyword + length requirements challenge smaller models
-  inbox_triage: 0.54            # hard — spam/GDPR routing is the main failure point
-  oracle_upper_bound: 0.94      # rule-based perfect-knowledge agent
-
-runtime:
-  python: ">=3.10"
-  framework: fastapi
-  port: 7860
+  ticket_classification: 0.72
+  ticket_response: 0.61
+  inbox_triage: 0.54
+  churn_prevention: 0.42
+  oracle_upper_bound: 0.94

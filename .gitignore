@@ -1,14 +1,7 @@
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-.Python
+.pytest_cache/
+.env
 *.egg-info/
 dist/
 build/
-.env
-.venv
-venv/
-*.log
-.pytest_cache/
-.DS_Store

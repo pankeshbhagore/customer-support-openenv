@@ -1,33 +1,17 @@
-"""Customer Support Triage OpenEnv Environment."""
-from .env import CustomerSupportEnv
+"""Customer Support Triage — OpenEnv Environment."""
+from .environment import CustomerSupportTriageEnv
 from .models import (
-    Action,
-    ActionType,
-    ClassificationPayload,
-    Department,
-    EnvState,
-    EscalationPayload,
-    Observation,
-    ResponsePayload,
-    Reward,
-    StepResult,
-    Ticket,
-    Urgency,
+    ActionType, ChurnRisk, ClassificationPayload, Department,
+    EscalationPayload, ResponsePayload, Ticket,
+    TriageAction, TriageObservation, TriageState, Urgency,
 )
+from .task_data import TASKS_META
 
-__version__ = "1.0.0"
+__version__ = "2.0.0"
 __all__ = [
-    "CustomerSupportEnv",
-    "Action",
-    "ActionType",
-    "ClassificationPayload",
-    "Department",
-    "EnvState",
-    "EscalationPayload",
-    "Observation",
-    "ResponsePayload",
-    "Reward",
-    "StepResult",
-    "Ticket",
-    "Urgency",
+    "CustomerSupportTriageEnv",
+    "TriageAction", "TriageObservation", "TriageState",
+    "ActionType", "Department", "Urgency", "ChurnRisk",
+    "ClassificationPayload", "ResponsePayload", "EscalationPayload",
+    "Ticket", "TASKS_META",
 ]
